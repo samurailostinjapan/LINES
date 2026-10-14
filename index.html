@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Trail Mix">
 <title>Trail Mix Consumption</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <style>
   :root {
     color-scheme: light dark;
@@ -276,6 +279,11 @@ $("clear").addEventListener("click", () => {
 
 load();
 render();
+
+// Offline support (needs https, which GitHub Pages provides). Relative path so it works under /REPONAME/.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
 </script>
 </body>
 </html>
