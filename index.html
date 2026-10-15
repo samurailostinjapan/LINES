@@ -14,76 +14,63 @@
 <style>
   :root {
     color-scheme: light dark;
-    --bg: #f3f5f7;
-    --surface: #ffffff;
-    --ink: #14181d;
-    --muted: #5b6672;
-    --line: #d5dbe1;
-    --accent: #0d4f8b;
-    --ok: #17683a;
-    --ok-bg: #dcf1e3;
-    --bad: #a3211b;
-    --bad-bg: #fbe0dd;
-    --field: #ffffff;
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #14181d; --muted: #5b6672; --line: #d5dbe1;
+    --accent: #0d4f8b; --ok: #17683a; --ok-bg: #dcf1e3; --bad: #a3211b; --bad-bg: #fbe0dd; --field: #ffffff;
+    --warn: #7a4b00; --warn-bg: #fdf0d2;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14181d;
-      --surface: #1c2229;
-      --ink: #eef1f4;
-      --muted: #9aa5b1;
-      --line: #333c46;
-      --accent: #7db7ee;
-      --ok: #7fd8a0;
-      --ok-bg: #173826;
-      --bad: #ff9c94;
-      --bad-bg: #4a1d1a;
-      --field: #12161b;
+      --bg: #14181d; --surface: #1c2229; --ink: #eef1f4; --muted: #9aa5b1; --line: #333c46;
+      --accent: #7db7ee; --ok: #7fd8a0; --ok-bg: #173826; --bad: #ff9c94; --bad-bg: #4a1d1a; --field: #12161b;
+      --warn: #f3c969; --warn-bg: #3f3210;
     }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
+    margin: 0; background: var(--bg); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 17px;
-    line-height: 1.4;
+    font-size: 17px; line-height: 1.4;
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   }
-  main {
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 20px 16px 190px;
-  }
+  main { max-width: 560px; margin: 0 auto; padding: 20px 16px 190px; }
   h1 { font-size: 24px; line-height: 1.2; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+  .sub { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+
+  label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+  input {
+    width: 100%; font: inherit; font-size: 22px; font-variant-numeric: tabular-nums;
+    padding: 12px; color: var(--ink); background: var(--field);
+    border: 1.5px solid var(--line); border-radius: 8px; min-height: 52px;
+  }
+  input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  input.bad { border-color: var(--bad); }
+
+  details.setup { border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); margin-bottom: 18px; }
+  details.setup summary { padding: 12px 14px; font-weight: 600; cursor: pointer; min-height: 48px; }
+  details.setup .body { padding: 0 14px 14px; }
+  .setup-note { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+  .srow { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .srow .nm { font-weight: 600; font-size: 16px; padding-bottom: 14px; }
+  .srow input { font-size: 18px; min-height: 46px; padding: 8px 10px; }
+  .srow label { font-size: 12px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--warn-bg); color: var(--warn); margin-left: 8px; }
+
+  .kits { padding: 16px 0 18px; border-top: 2px solid var(--ink); }
+  .kits .t { font-size: 18px; font-weight: 700; }
+  .kits .d { font-size: 14px; color: var(--muted); margin: 2px 0 10px; }
+  .kits input { max-width: 200px; }
 
   .product { padding: 18px 0 20px; border-top: 1px solid var(--line); }
-  .product:first-of-type { border-top: 2px solid var(--ink); }
   .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
   .name { font-size: 18px; font-weight: 700; }
   .meta { color: var(--muted); font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
   .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-  input {
-    width: 100%;
-    font: inherit;
-    font-size: 22px;
-    font-variant-numeric: tabular-nums;
-    padding: 12px 12px;
-    color: var(--ink);
-    background: var(--field);
-    border: 1.5px solid var(--line);
-    border-radius: 8px;
-    min-height: 52px;
-  }
-  input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-  input.bad { border-color: var(--bad); }
+  .inputs .full { grid-column: 1 / -1; }
+  .breakdown { margin-top: 10px; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .breakdown b { color: var(--ink); }
 
-  .result { margin-top: 14px; }
+  .result { margin-top: 12px; }
   .cons { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .cons .lbl { font-size: 15px; color: var(--muted); }
   .cons .val { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
@@ -94,13 +81,10 @@
   .flag { margin-top: 10px; padding: 8px 10px; border-radius: 6px; font-size: 15px; font-weight: 600; }
   .flag.ok { background: var(--ok-bg); color: var(--ok); }
   .flag.bad { background: var(--bad-bg); color: var(--bad); }
+  .flag.warn { background: var(--warn-bg); color: var(--warn); }
 
-  .bar {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    background: var(--surface);
-    border-top: 2px solid var(--ink);
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-  }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 2px solid var(--ink);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
   .bar-inner { max-width: 560px; margin: 0 auto; }
   .bar .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .bar .lbl { font-size: 15px; color: var(--muted); }
@@ -109,17 +93,31 @@
   .bar .note { font-size: 14px; color: var(--muted); min-height: 20px; }
   .bar .note.bad { color: var(--bad); font-weight: 600; }
   .bar .note.ok { color: var(--ok); font-weight: 600; }
-  .bar button {
-    margin-top: 8px; font: inherit; font-size: 15px; color: var(--accent); background: none;
-    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 14px; min-height: 40px;
-  }
+  .bar button { margin-top: 8px; font: inherit; font-size: 15px; color: var(--accent); background: none;
+    border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 14px; min-height: 40px; }
   .bar button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Trail mix consumption</h1>
-  <p class="sub">Enter pounds. Consumption is assigned minus remaining. The four consumptions add up to the finished output.</p>
+  <p class="sub">Consumption = assigned &minus; remaining. Remaining = pallet + kits + Yamato. The four consumptions add up to the finished output.</p>
+
+  <details class="setup" id="setup">
+    <summary>Setup: box weights and kit recipe <span class="pill" id="setupPill" hidden>Needs weights</span></summary>
+    <div class="body">
+      <p class="setup-note">Set once. Saved on this phone. Lb per box is required for every product.</p>
+      <div id="setupRows"></div>
+    </div>
+  </details>
+
+  <section class="kits">
+    <div class="t">Premade kits remaining</div>
+    <div class="d" id="kitDesc"></div>
+    <label for="kits">Kits (type 0 if none)</label>
+    <input id="kits" type="text" inputmode="decimal" autocomplete="off">
+  </section>
+
   <div id="products"></div>
 </main>
 
@@ -130,50 +128,67 @@
       <span class="val" id="total">&ndash;</span>
     </div>
     <div class="note" id="note" aria-live="polite"></div>
-    <button type="button" id="clear">Clear all</button>
+    <button type="button" id="clear">Clear all counts</button>
   </div>
 </div>
 
 <script>
 // ---- Settings you can edit ------------------------------------------------
 // BOM percentages for SKU 8-00100 (TM PB CHOC PRTN WR), from work order 49216205.
+// perKit = boxes of that product in one premade kit; perBox = lb per box. Both can also be changed in the Setup box on the page.
 const PRODUCTS = [
-  { id: "pea", sku: "411-00014", name: "Jumbo peanut",  pct: 0.38 },
-  { id: "pdr", sku: "407-00136", name: "Peanut drop",   pct: 0.25 },
-  { id: "drk", sku: "407-00060", name: "Dark drop",     pct: 0.22 },
-  { id: "coc", sku: "411-00073", name: "Cocoa glazed",  pct: 0.15 }
+  { id: "pea", sku: "411-00014", name: "Jumbo peanut", pct: 0.38, perKit: 16, perBox: 30 },
+  { id: "pdr", sku: "407-00136", name: "Peanut drop",  pct: 0.25, perKit: 12, perBox: 25 },
+  { id: "drk", sku: "407-00060", name: "Dark drop",    pct: 0.22, perKit: 11, perBox: 25 },
+  { id: "coc", sku: "411-00073", name: "Cocoa glazed", pct: 0.15, perKit: 5,  perBox: 40 }
 ];
 // Flag a product when its consumption is more than this far from theoretic (assumption: 5%).
 const TOL = 0.05;
 // ---------------------------------------------------------------------------
 
-const STORE_KEY = "trailmix-counts-v1";
+const COUNTS_KEY = "trailmix-counts-v2";
+const SETUP_KEY = "trailmix-setup-v1";
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 const pctFmt = (n) => (n * 100).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
 
-// Reads a text box. Returns {blank}, {bad}, or {n}.
+// Reads a text box. Returns {blank}, {bad}, or {n}. Negative numbers are rejected.
 function parse(v) {
   const s = String(v).replace(/,/g, "").trim();
   if (s === "") return { blank: true };
   const n = Number(s);
-  return Number.isFinite(n) ? { n } : { bad: true };
+  return Number.isFinite(n) && n >= 0 ? { n } : { bad: true };
 }
 
-// Pure calculation, given [{a: parsed, r: parsed}, ...] in PRODUCTS order.
-function compute(counts) {
-  const rows = PRODUCTS.map((p, i) => {
-    const a = counts[i].a, r = counts[i].r;
-    const complete = a.n !== undefined && r.n !== undefined;
-    return { p, a, r, complete, cons: complete ? a.n - r.n : null };
+// Pure calculation. state = { kits, rows: [{a, p, y, w, k}] } in PRODUCTS order (all parsed values).
+function compute(state) {
+  const kits = state.kits;
+  const rows = PRODUCTS.map((prod, i) => {
+    const s = state.rows[i];
+    const missing = [];
+    if (s.a.n === undefined) missing.push("assigned");
+    if (s.p.n === undefined) missing.push("pallet");
+    if (s.y.n === undefined) missing.push("Yamato");
+    if (kits.n === undefined) missing.push("kits");
+    if (!(s.w.n > 0)) missing.push("lb per box (Setup)");
+    if (s.k.n === undefined) missing.push("boxes per kit (Setup)");
+    const x = { p: prod, s, missing, ok: missing.length === 0,
+                kitBoxes: null, boxes: null, remLb: null, cons: null, theo: null, varLb: null, ratio: null, flags: [] };
+    if (x.ok) {
+      x.kitBoxes = kits.n * s.k.n;
+      x.boxes = s.p.n + x.kitBoxes + s.y.n;
+      x.remLb = x.boxes * s.w.n;
+      x.cons = s.a.n - x.remLb;
+      if (x.remLb > s.a.n) x.flags.push("Remaining is more than assigned");
+    }
+    return x;
   });
-  const done = rows.filter((x) => x.complete);
-  const total = done.reduce((s, x) => s + x.cons, 0);
+  const done = rows.filter((x) => x.ok);
+  const total = done.reduce((t, x) => t + x.cons, 0);
   const allDone = done.length === rows.length;
   rows.forEach((x) => {
-    x.theo = null; x.varLb = null; x.ratio = null; x.flags = [];
-    if (x.complete && x.r.n > x.a.n) x.flags.push("Remaining is more than assigned");
-    if (allDone && total > 0) {
+    if (x.ok && allDone && total > 0) {
       x.theo = total * x.p.pct;
       x.varLb = x.cons - x.theo;
       x.ratio = x.cons / x.theo;
@@ -186,6 +201,12 @@ function compute(counts) {
 }
 
 // ---- Build the page --------------------------------------------------------
+$("setupRows").innerHTML = PRODUCTS.map((p) =>
+  '<div class="srow"><div class="nm">' + p.name + '</div>' +
+  '<div><label for="' + p.id + '-w">Lb per box</label><input id="' + p.id + '-w" type="text" inputmode="decimal" autocomplete="off" value="' + p.perBox + '"></div>' +
+  '<div><label for="' + p.id + '-k">Boxes per kit</label><input id="' + p.id + '-k" type="text" inputmode="decimal" autocomplete="off" value="' + p.perKit + '"></div></div>'
+).join("");
+
 const holder = $("products");
 PRODUCTS.forEach((p) => {
   const el = document.createElement("section");
@@ -194,44 +215,63 @@ PRODUCTS.forEach((p) => {
     '<div class="head"><span class="name">' + p.name + '</span>' +
     '<span class="meta">' + p.sku + ' &middot; BOM ' + Math.round(p.pct * 100) + '%</span></div>' +
     '<div class="inputs">' +
-      '<div><label for="' + p.id + '-a">Assigned (lb)</label>' +
-      '<input id="' + p.id + '-a" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next"></div>' +
-      '<div><label for="' + p.id + '-r">Remaining (lb)</label>' +
-      '<input id="' + p.id + '-r" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next"></div>' +
+      '<div class="full"><label for="' + p.id + '-a">Assigned (lb)</label>' +
+      '<input id="' + p.id + '-a" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div><label for="' + p.id + '-p">On pallet (boxes)</label>' +
+      '<input id="' + p.id + '-p" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div><label for="' + p.id + '-y">At Yamato (boxes)</label>' +
+      '<input id="' + p.id + '-y" type="text" inputmode="decimal" autocomplete="off"></div>' +
     '</div>' +
     '<div class="result" id="' + p.id + '-res" aria-live="polite"></div>';
   holder.appendChild(el);
 });
 
-function readCounts() {
-  return PRODUCTS.map((p) => ({ a: parse($(p.id + "-a").value), r: parse($(p.id + "-r").value) }));
+function readState() {
+  return {
+    kits: parse($("kits").value),
+    rows: PRODUCTS.map((p) => ({
+      a: parse($(p.id + "-a").value), p: parse($(p.id + "-p").value), y: parse($(p.id + "-y").value),
+      w: parse($(p.id + "-w").value), k: parse($(p.id + "-k").value)
+    }))
+  };
 }
 
 function render() {
-  const out = compute(readCounts());
+  const state = readState();
+  const out = compute(state);
+
+  $("kits").classList.toggle("bad", !!state.kits.bad);
+  const noWeights = out.rows.some((x) => !(x.s.w.n > 0));
+  $("setupPill").hidden = !noWeights;
+  $("kitDesc").textContent = "One kit = " + PRODUCTS.map((p, i) => {
+    const k = state.rows[i].k; return (k.n !== undefined ? fmt1(k.n) : "?") + " " + p.name.toLowerCase();
+  }).join(", ") + " (boxes).";
+
   out.rows.forEach((x) => {
-    const id = x.p.id;
-    $(id + "-a").classList.toggle("bad", !!x.a.bad);
-    $(id + "-r").classList.toggle("bad", !!x.r.bad);
+    const id = x.p.id, s = x.s;
+    ["a", "p", "y"].forEach((f) => $(id + "-" + f).classList.toggle("bad", !!s[f].bad));
+    ["w", "k"].forEach((f) => $(id + "-" + f).classList.toggle("bad", !!s[f].bad));
     const res = $(id + "-res");
-    if (x.a.bad || x.r.bad) {
-      res.innerHTML = '<div class="flag bad">Numbers only, for example 1250.5</div>';
+    const anyBad = s.a.bad || s.p.bad || s.y.bad || s.w.bad || s.k.bad || state.kits.bad;
+    const touched = ["a", "p", "y"].some((f) => !s[f].blank);
+    if (anyBad) { res.innerHTML = '<div class="flag bad">Numbers only, no negatives, for example 12.5</div>'; return; }
+    if (!x.ok) {
+      res.innerHTML = touched ? '<div class="flag warn">Still needed: ' + x.missing.join(", ") + '</div>' : "";
       return;
     }
-    if (!x.complete) { res.innerHTML = ""; return; }
-    let h = '<div class="cons"><span class="lbl">Consumption (enter this)</span>' +
-            '<span class="val">' + fmt(x.cons) + '<small>lb</small></span></div>';
+    let h = '<div class="breakdown">Remaining: pallet <b>' + fmt1(s.p.n) + '</b> + kits <b>' + fmt1(x.kitBoxes) +
+            '</b> (' + fmt1(state.kits.n) + ' &times; ' + fmt1(s.k.n) + ') + Yamato <b>' + fmt1(s.y.n) + '</b> = <b>' +
+            fmt1(x.boxes) + '</b> boxes = <b>' + fmt(x.remLb) + ' lb</b></div>';
+    h += '<div class="cons" style="margin-top:10px"><span class="lbl">Consumption (enter this)</span>' +
+         '<span class="val">' + fmt(x.cons) + '<small>lb</small></span></div>';
     if (x.theo !== null) {
       h += '<div class="stats">' +
            '<div><span>Theoretic</span>' + fmt(x.theo) + '</div>' +
            '<div><span>Variance</span>' + fmt(x.varLb) + '</div>' +
            '<div><span>vs theoretic</span>' + pctFmt(x.ratio) + '</div></div>';
     }
-    if (x.flags.length) {
-      h += '<div class="flag bad">Check: ' + x.flags.join("; ") + '</div>';
-    } else if (x.theo !== null) {
-      h += '<div class="flag ok">OK</div>';
-    }
+    if (x.flags.length) h += '<div class="flag bad">Check: ' + x.flags.join("; ") + '</div>';
+    else if (x.theo !== null) h += '<div class="flag ok">OK</div>';
     res.innerHTML = h;
   });
 
@@ -247,38 +287,45 @@ function render() {
   } else {
     $("totalLabel").textContent = "Total so far";
     $("total").innerHTML = out.doneCount ? fmt(out.total) + "<small>lb</small>" : "&ndash;";
-    note.textContent = (PRODUCTS.length - out.doneCount) + " of " + PRODUCTS.length + " products still need both counts.";
+    note.textContent = (PRODUCTS.length - out.doneCount) + " of " + PRODUCTS.length + " products still need all counts.";
   }
 }
 
 // ---- Remember entries in case Safari reloads the page ----------------------
 function save() {
   try {
-    const data = {};
-    PRODUCTS.forEach((p) => { data[p.id] = [$(p.id + "-a").value, $(p.id + "-r").value]; });
-    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    const c = { kits: $("kits").value };
+    PRODUCTS.forEach((p) => { c[p.id] = [$(p.id + "-a").value, $(p.id + "-p").value, $(p.id + "-y").value]; });
+    localStorage.setItem(COUNTS_KEY, JSON.stringify(c));
+    const s = {};
+    PRODUCTS.forEach((p) => { s[p.id] = [$(p.id + "-w").value, $(p.id + "-k").value]; });
+    localStorage.setItem(SETUP_KEY, JSON.stringify(s));
   } catch (e) { /* storage unavailable: fine */ }
 }
 function load() {
   try {
-    const data = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-    if (!data) return;
-    PRODUCTS.forEach((p) => {
-      if (data[p.id]) { $(p.id + "-a").value = data[p.id][0]; $(p.id + "-r").value = data[p.id][1]; }
-    });
+    const c = JSON.parse(localStorage.getItem(COUNTS_KEY) || "null");
+    if (c) {
+      $("kits").value = c.kits || "";
+      PRODUCTS.forEach((p) => { if (c[p.id]) { $(p.id + "-a").value = c[p.id][0]; $(p.id + "-p").value = c[p.id][1]; $(p.id + "-y").value = c[p.id][2]; } });
+    }
+    const s = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
+    if (s) PRODUCTS.forEach((p) => { if (s[p.id]) { if (s[p.id][0] !== "") $(p.id + "-w").value = s[p.id][0]; if (s[p.id][1] !== "") $(p.id + "-k").value = s[p.id][1]; } });
   } catch (e) { /* ignore */ }
 }
 
 document.addEventListener("input", () => { render(); save(); });
 $("clear").addEventListener("click", () => {
-  if (!confirm("Clear all counts?")) return;
-  PRODUCTS.forEach((p) => { $(p.id + "-a").value = ""; $(p.id + "-r").value = ""; });
+  if (!confirm("Clear all counts? (Box weights and kit recipe are kept.)")) return;
+  $("kits").value = "";
+  PRODUCTS.forEach((p) => { $(p.id + "-a").value = ""; $(p.id + "-p").value = ""; $(p.id + "-y").value = ""; });
   render(); save();
   window.scrollTo(0, 0);
 });
 
 load();
 render();
+if (!PRODUCTS.every((p) => parse($(p.id + "-w").value).n > 0)) $("setup").open = true;
 
 // Offline support (needs https, which GitHub Pages provides). Relative path so it works under /REPONAME/.
 if ("serviceWorker" in navigator) {
