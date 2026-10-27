@@ -34,16 +34,17 @@
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   }
   main { max-width: 560px; margin: 0 auto; padding: 20px 16px 190px; }
-  h1 { font-size: 24px; line-height: 1.2; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+  h1 { font-size: 24px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.01em; }
+  .sub { margin: 12px 0 16px; color: var(--muted); font-size: 15px; }
 
   label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-  input {
+  input, select {
     width: 100%; font: inherit; font-size: 22px; font-variant-numeric: tabular-nums;
     padding: 12px; color: var(--ink); background: var(--field);
     border: 1.5px solid var(--line); border-radius: 8px; min-height: 52px;
   }
-  input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  select { font-size: 18px; font-weight: 600; }
+  input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   input.bad { border-color: var(--bad); }
 
   details.setup { border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); margin-bottom: 18px; }
@@ -62,6 +63,7 @@
   .kits input { max-width: 200px; }
 
   .product { padding: 18px 0 20px; border-top: 1px solid var(--line); }
+  .product:first-child { border-top: 2px solid var(--ink); }
   .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
   .name { font-size: 18px; font-weight: 700; }
   .meta { color: var(--muted); font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -75,6 +77,7 @@
   .finished .d { font-size: 14px; color: var(--muted); margin: 2px 0 12px; }
   .fin-lines { margin-top: 12px; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .fin-lines b { color: var(--ink); }
+
   .result { margin-top: 12px; }
   .cons { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .cons .lbl { font-size: 15px; color: var(--muted); }
@@ -106,20 +109,22 @@
 <body>
 <main>
   <h1>Trail mix consumption</h1>
-  <p class="sub">Consumption = assigned &minus; remaining. Remaining = pallet + kits + Yamato. The four consumptions add up to the finished output.</p>
+  <label for="line">Product</label>
+  <select id="line"></select>
+  <p class="sub" id="subText"></p>
 
   <details class="setup" id="setup">
-    <summary>Setup: box weights and kit recipe <span class="pill" id="setupPill" hidden>Needs weights</span></summary>
+    <summary>Setup: box weights and finished pack <span class="pill" id="setupPill" hidden>Needs setup</span></summary>
     <div class="body">
-      <p class="setup-note">Set once. Saved on this phone. Lb per box is required for every product.</p>
+      <p class="setup-note">Set once per product. Saved on this phone.</p>
       <div id="setupRows"></div>
-      <div class="srow"><div class="nm">Finished pallet</div>
-        <div><label for="pp">Boxes per pallet</label><input id="pp" type="text" inputmode="decimal" autocomplete="off" value="288"></div>
-        <div><label for="bw">Lb per box</label><input id="bw" type="text" inputmode="decimal" autocomplete="off" value="1.1"></div></div>
+      <div class="srow"><div class="nm" id="finName">Finished pallet</div>
+        <div><label for="pp" id="ppLabel">Units per pallet</label><input id="pp" type="text" inputmode="decimal" autocomplete="off"></div>
+        <div><label for="bw" id="bwLabel">Lb per unit</label><input id="bw" type="text" inputmode="decimal" autocomplete="off"></div></div>
     </div>
   </details>
 
-  <section class="kits">
+  <section class="kits" id="kitsSec">
     <div class="t">Premade kits remaining</div>
     <div class="d" id="kitDesc"></div>
     <label for="kits">Number of kits (like 6, not boxes). Type 0 if none.</label>
@@ -131,12 +136,12 @@
 
   <section class="finished">
     <div class="t">Finished product check</div>
-    <div class="d">A second way to check. Boxes made = full pallets &times; boxes per pallet &minus; boxes already on the pallet at start + boxes on the pallet at end. Consumed minus finished should be just the waste.</div>
+    <div class="d" id="finDesc"></div>
     <div class="inputs">
       <div><label for="fp">Full pallets finished</label><input id="fp" type="text" inputmode="decimal" autocomplete="off"></div>
-      <div></div>
-      <div><label for="fs">Boxes on pallet at start</label><input id="fs" type="text" inputmode="decimal" autocomplete="off"></div>
-      <div><label for="fe">Boxes on pallet at end</label><input id="fe" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div><label for="fr">Rework run today (lb, optional)</label><input id="fr" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div><label for="fs" id="fsLabel">On pallet at start</label><input id="fs" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div><label for="fe" id="feLabel">On pallet at end</label><input id="fe" type="text" inputmode="decimal" autocomplete="off"></div>
     </div>
     <div class="result" id="finRes" aria-live="polite"></div>
   </section>
@@ -154,28 +159,57 @@
 </div>
 
 <script>
-// ---- Settings you can edit ------------------------------------------------
-// BOM percentages for SKU 8-00100 (TM PB CHOC PRTN WR), from work order 49216205.
-// perKit = boxes of that product in one premade kit; perBox = lb per box. Both can also be changed in the Setup box on the page.
-const PRODUCTS = [
-  { id: "pea", sku: "411-00014", name: "Jumbo peanut", pct: 0.38, perKit: 16, perBox: 30 },
-  { id: "pdr", sku: "407-00136", name: "Peanut drop",  pct: 0.25, perKit: 12, perBox: 25 },
-  { id: "drk", sku: "407-00060", name: "Dark drop",    pct: 0.22, perKit: 11, perBox: 25 },
-  { id: "coc", sku: "411-00073", name: "Cocoa glazed", pct: 0.15, perKit: 5,  perBox: 40 }
-];
-// Flag a product when its consumption is more than this far from theoretic (assumption: 5%).
+// ---- Products you can edit ------------------------------------------------
+// pct      = BOM percentage from the work order.
+// perBox   = lb in one box of that ingredient.
+// perKit   = boxes of that ingredient in one premade kit (only for lines that count kits).
+// finished = what one finished unit weighs and how many make a pallet (perPallet: null = set it in Setup).
+// Flag a product when its consumption is more than TOL away from theoretic (assumption: 5%).
+// waste    = OK range for (consumed minus made from ingredients): either low/high in lb, or lowPct/highPct as a share of finished lb.
+//            These are assumptions: tune after a few days.
 const TOL = 0.05;
-// Finished-product check: consumed minus finished product (lb) should be about the waste (you said 30-50 lb).
-// Assumption: OK between WASTE_LOW and WASTE_HIGH. A little below 0 is allowed because box weights are nominal (1.1 lb).
-const WASTE_LOW = -10;
-const WASTE_HIGH = 75;
+const CONFIGS = [
+  {
+    id: "8-00100", label: "8-00100  TM PB CHOC PRTN WR",
+    useKits: true, useYamato: true, pallets: 1,
+    sub: "Consumption = assigned \u2212 remaining. Remaining = pallet + kits + Yamato (+ loose lb). The consumptions add up to the finished output.",
+    finished: { unit: "box", perPallet: 288, unitLb: 1.1 },
+    waste: { low: -10, high: 75, expect: "30\u201350" },
+    products: [
+      { id: "pea", sku: "411-00014", name: "Jumbo peanut", pct: 0.38, perBox: 30, perKit: 16 },
+      { id: "pdr", sku: "407-00136", name: "Peanut drop",  pct: 0.25, perBox: 25, perKit: 12 },
+      { id: "drk", sku: "407-00060", name: "Dark drop",    pct: 0.22, perBox: 25, perKit: 11 },
+      { id: "coc", sku: "411-00073", name: "Cocoa glazed", pct: 0.15, perBox: 40, perKit: 5 }
+    ]
+  },
+  {
+    id: "8-00072", label: "8-00072  TM PB CHOC WR",
+    useKits: false, useYamato: false, pallets: 3,
+    sub: "Consumption = assigned \u2212 remaining. Remaining = what is left on the 2\u20133 pallets around the mixer (boxes plus loose lb). The consumptions add up to the finished output.",
+    finished: { unit: "tray", perPallet: 16, unitLb: 37.62 },   // 24 bags per tray; bag target 711 g = 1.5674 lb; x 24 = 37.62 lb (nominal 37.5 lb)
+    waste: { lowPct: -0.005, highPct: 0.01 },   // placeholder: -0.5% to +1.0% of finished lb. Tune after a few days.
+    products: [
+      { id: "jmb", sku: "411-00014", name: "Jumbo peanut",        pct: 0.26, perBox: 30 },
+      { id: "dk2", sku: "407-00060", name: "Dark drop",           pct: 0.22, perBox: 25 },
+      { id: "alm", sku: "411-00044", name: "Cocoa dusted almond", pct: 0.22, perBox: 25 },
+      { id: "pbc", sku: "407-00085", name: "PB cluster",          pct: 0.16, perBox: 25 },
+      { id: "fdg", sku: "407-00086", name: "PB fudge cluster",    pct: 0.14, perBox: 25 }
+    ]
+  }
+];
 // ---------------------------------------------------------------------------
 
-let settled = true;   // false while the person is still typing, so checks do not flash on half-typed numbers
+let cfg = CONFIGS[0];
+let settled = true;   // false while typing, so checks do not flash on half-typed numbers
 let settleTimer = null;
-const COUNTS_KEY = "trailmix-counts-v2";
-const SETUP_KEY = "trailmix-setup-v1";
+const SEL_KEY = "trailmix-line";
+const countsKey = (id) => "trailmix-counts-v3:" + id;
+const setupKey = (id) => "trailmix-setup-v2:" + id;
+const LEGACY = { "8-00100": { counts: "trailmix-counts-v2", setup: "trailmix-setup-v1" } };
+
 const $ = (id) => document.getElementById(id);
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const pl = (u) => (u === "box" ? "boxes" : u + "s");
 const fmt = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmt1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 const pctFmt = (n) => (n * 100).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
@@ -187,24 +221,26 @@ function parse(v) {
   const n = Number(s);
   return Number.isFinite(n) && n >= 0 ? { n } : { bad: true };
 }
+const ZERO = { n: 0 };
 
-// Pure calculation. state = { kits, rows: [{a, p, y, w, k}] } in PRODUCTS order (all parsed values).
-function compute(state) {
+// Pure calculation. state = { kits, rows: [{a, p, y, l, w, k}] } in cfg.products order (parsed values).
+function compute(state, c) {
   const kits = state.kits;
-  const rows = PRODUCTS.map((prod, i) => {
+  const rows = c.products.map((prod, i) => {
     const s = state.rows[i];
     const missing = [];
     if (s.a.n === undefined) missing.push("assigned");
     if (s.p.n === undefined) missing.push("pallet");
-    if (s.y.n === undefined) missing.push("Yamato");
-    if (kits.n === undefined) missing.push("kits");
+    if (c.useYamato && s.y.n === undefined) missing.push("Yamato");
+    if (c.useKits && kits.n === undefined) missing.push("kits");
     if (!(s.w.n > 0)) missing.push("lb per box (Setup)");
-    if (s.k.n === undefined) missing.push("boxes per kit (Setup)");
+    if (c.useKits && s.k.n === undefined) missing.push("boxes per kit (Setup)");
     const x = { p: prod, s, missing, ok: missing.length === 0,
-                kitBoxes: null, boxes: null, looseLb: 0, remLb: null, cons: null, theo: null, varLb: null, ratio: null, flags: [] };
+                kitBoxes: 0, boxes: null, looseLb: 0, remLb: null, cons: null, theo: null, varLb: null, ratio: null, flags: [] };
     if (x.ok) {
-      x.kitBoxes = kits.n * s.k.n;
-      x.boxes = s.p.n + x.kitBoxes + s.y.n;
+      x.kitBoxes = c.useKits ? kits.n * s.k.n : 0;
+      x.palletBoxes = s.p.n + (s.p2.n || 0) + (s.p3.n || 0);
+      x.boxes = x.palletBoxes + x.kitBoxes + (c.useYamato ? s.y.n : 0);
       x.looseLb = s.l.n || 0;
       x.remLb = x.boxes * s.w.n + x.looseLb;
       x.cons = s.a.n - x.remLb;
@@ -228,93 +264,137 @@ function compute(state) {
   return { rows, total, allDone, doneCount: done.length };
 }
 
-// f = {fp, fs, fe, pp, bw} parsed. total = total consumed (lb) when all four products are done.
-function finishedCheck(f, total, allDone) {
+// f = {fp, fs, fe, pp, bw, fr} parsed (fr = rework lb, optional). total = total consumed (lb) once all products are done.
+function finishedCheck(f, total, allDone, c) {
+  const u = c.finished.unit;
   const missing = [];
   if (f.fp.n === undefined) missing.push("full pallets");
-  if (f.fs.n === undefined) missing.push("boxes at start");
-  if (f.fe.n === undefined) missing.push("boxes at end");
-  if (!(f.pp.n > 0)) missing.push("boxes per pallet (Setup)");
-  if (!(f.bw.n > 0)) missing.push("lb per box (Setup)");
+  if (f.fs.n === undefined) missing.push(pl(u) + " at start");
+  if (f.fe.n === undefined) missing.push(pl(u) + " at end");
+  if (!(f.pp.n > 0)) missing.push(pl(u) + " per pallet (Setup)");
+  if (!(f.bw.n > 0)) missing.push("lb per " + u + " (Setup)");
   if (missing.length) return { ok: false, missing };
-  const boxes = f.fp.n * f.pp.n - f.fs.n + f.fe.n;
-  const lb = boxes * f.bw.n;
-  const r = { ok: true, boxes, lb, missing, waste: null, status: null };
-  if (boxes < 0) { r.status = "bad"; r.msg = "Boxes made is negative. Check pallets and start/end boxes."; return r; }
+  const units = f.fp.n * f.pp.n - f.fs.n + f.fe.n;
+  const lb = units * f.bw.n;
+  const rework = f.fr.n || 0;
+  const r = { ok: true, units, lb, rework, ingLb: lb - rework, missing, waste: null, status: null };
+  if (units < 0) { r.status = "bad"; r.msg = cap(pl(u)) + " made is negative. Check pallets and start/end counts."; return r; }
+  r.lo = c.waste.lowPct != null ? c.waste.lowPct * r.ingLb : c.waste.low;
+  r.hi = c.waste.highPct != null ? c.waste.highPct * r.ingLb : c.waste.high;
   if (allDone) {
-    r.waste = total - lb;
-    if (r.waste < WASTE_LOW) { r.status = "bad"; r.msg = "Consumed is less than finished product. Recount remaining or the pallet boxes."; }
-    else if (r.waste > WASTE_HIGH) { r.status = "bad"; r.msg = "More than " + WASTE_HIGH + " lb difference. Recount remaining, or check pallet boxes."; }
+    r.waste = total - r.ingLb;
+    if (r.waste < r.lo) { r.status = "bad"; r.msg = "Consumed is less than finished product. Recount remaining or the pallet " + pl(u) + "."; }
+    else if (r.waste > r.hi) { r.status = "bad"; r.msg = "More than " + fmt1(Math.round(r.hi)) + " lb difference. Recount remaining, or check pallet " + pl(u) + "."; }
     else { r.status = "ok"; r.msg = "OK"; }
   }
   return r;
 }
 
-// ---- Build the page --------------------------------------------------------
-$("setupRows").innerHTML = PRODUCTS.map((p) =>
-  '<div class="srow"><div class="nm">' + p.name + '</div>' +
-  '<div><label for="' + p.id + '-w">Lb per box</label><input id="' + p.id + '-w" type="text" inputmode="decimal" autocomplete="off" value="' + p.perBox + '"></div>' +
-  '<div><label for="' + p.id + '-k">Boxes per kit</label><input id="' + p.id + '-k" type="text" inputmode="decimal" autocomplete="off" value="' + p.perKit + '"></div></div>'
-).join("");
+// ---- Build the page for the selected product -------------------------------
+function buildUI() {
+  const u = cfg.finished.unit;
+  $("subText").textContent = cfg.sub;
+  $("kitsSec").hidden = !cfg.useKits;
+  $("setupRows").innerHTML = cfg.products.map((p) =>
+    '<div class="srow"><div class="nm">' + p.name + '</div>' +
+    '<div><label for="' + p.id + '-w">Lb per box</label><input id="' + p.id + '-w" type="text" inputmode="decimal" autocomplete="off" value="' + p.perBox + '"></div>' +
+    (cfg.useKits
+      ? '<div><label for="' + p.id + '-k">Boxes per kit</label><input id="' + p.id + '-k" type="text" inputmode="decimal" autocomplete="off" value="' + p.perKit + '"></div>'
+      : '<div></div>') +
+    '</div>').join("");
+  $("finName").textContent = "Finished pallet";
+  $("ppLabel").textContent = cap(pl(u)) + " per pallet";
+  $("bwLabel").textContent = "Lb per " + u;
+  $("pp").value = cfg.finished.perPallet == null ? "" : cfg.finished.perPallet;
+  $("bw").value = cfg.finished.unitLb;
+  $("fsLabel").textContent = cap(pl(u)) + " on pallet at start";
+  $("feLabel").textContent = cap(pl(u)) + " on pallet at end";
+  $("finDesc").innerHTML = "A second way to check. " + cap(pl(u)) + " made = full pallets &times; " + pl(u) + " per pallet &minus; " + pl(u) +
+    " already on the pallet at start + " + pl(u) + " on the pallet at end. Rework that was run again counts as finished product but was not consumed from the ingredients, so enter it too. Consumed minus finished should be just the waste.";
+  ["fp", "fs", "fe", "fr", "kits"].forEach((id) => { $(id).value = ""; });
 
-const holder = $("products");
-PRODUCTS.forEach((p) => {
-  const el = document.createElement("section");
-  el.className = "product";
-  el.innerHTML =
-    '<div class="head"><span class="name">' + p.name + '</span>' +
-    '<span class="meta">' + p.sku + ' &middot; BOM ' + Math.round(p.pct * 100) + '%</span></div>' +
-    '<div class="inputs">' +
-      '<div class="full"><label for="' + p.id + '-a">Assigned (lb)</label>' +
-      '<input id="' + p.id + '-a" type="text" inputmode="decimal" autocomplete="off"></div>' +
-      '<div><label for="' + p.id + '-p">On pallet (boxes)</label>' +
-      '<input id="' + p.id + '-p" type="text" inputmode="decimal" autocomplete="off"></div>' +
-      '<div><label for="' + p.id + '-y">At Yamato (boxes)</label>' +
-      '<input id="' + p.id + '-y" type="text" inputmode="decimal" autocomplete="off"></div>' +
-      '<div><label for="' + p.id + '-l">Loose pounds (lb, optional)</label>' +
-      '<input id="' + p.id + '-l" type="text" inputmode="decimal" autocomplete="off"></div>' +
-    '</div>' +
-    '<div class="result" id="' + p.id + '-res" aria-live="polite"></div>';
-  holder.appendChild(el);
-});
+  const holder = $("products");
+  holder.innerHTML = "";
+  cfg.products.forEach((p) => {
+    const el = document.createElement("section");
+    el.className = "product";
+    const multi = (cfg.pallets || 1) > 1;
+    const cell = (suffix, label) => '<div><label for="' + p.id + '-' + suffix + '">' + label + '</label><input id="' + p.id + '-' + suffix + '" type="text" inputmode="decimal" autocomplete="off"></div>';
+    const palletCells = multi
+      ? cell("p", "Pallet 1 (boxes)") + cell("p2", "Pallet 2 (boxes, optional)") + cell("p3", "Pallet 3 (boxes, optional)")
+      : cell("p", "On pallet (boxes)");
+    const yam = cfg.useYamato
+      ? '<div><label for="' + p.id + '-y">At Yamato (boxes)</label><input id="' + p.id + '-y" type="text" inputmode="decimal" autocomplete="off"></div>' : "";
+    const loose = '<div><label for="' + p.id + '-l">Loose pounds (lb, optional)</label><input id="' + p.id + '-l" type="text" inputmode="decimal" autocomplete="off"></div>';
+    el.innerHTML =
+      '<div class="head"><span class="name">' + p.name + '</span><span class="meta">' + p.sku + ' &middot; BOM ' + Math.round(p.pct * 100) + '%</span></div>' +
+      '<div class="inputs">' +
+        '<div class="full"><label for="' + p.id + '-a">Assigned (lb)</label><input id="' + p.id + '-a" type="text" inputmode="decimal" autocomplete="off"></div>' +
+        palletCells +
+        (cfg.useYamato ? yam + loose : loose) +
+      '</div><div class="result" id="' + p.id + '-res" aria-live="polite"></div>';
+    holder.appendChild(el);
+  });
+}
 
 function readState() {
   return {
-    kits: parse($("kits").value),
-    rows: PRODUCTS.map((p) => ({
-      a: parse($(p.id + "-a").value), p: parse($(p.id + "-p").value), y: parse($(p.id + "-y").value), l: parse($(p.id + "-l").value),
-      w: parse($(p.id + "-w").value), k: parse($(p.id + "-k").value)
+    kits: cfg.useKits ? parse($("kits").value) : ZERO,
+    rows: cfg.products.map((p) => ({
+      a: parse($(p.id + "-a").value),
+      p: parse($(p.id + "-p").value),
+      p2: (cfg.pallets || 1) > 1 ? parse($(p.id + "-p2").value) : ZERO,
+      p3: (cfg.pallets || 1) > 1 ? parse($(p.id + "-p3").value) : ZERO,
+      y: cfg.useYamato ? parse($(p.id + "-y").value) : ZERO,
+      l: parse($(p.id + "-l").value),
+      w: parse($(p.id + "-w").value),
+      k: cfg.useKits ? parse($(p.id + "-k").value) : ZERO
     }))
   };
 }
 
 function render() {
   const state = readState();
-  const out = compute(state);
+  const out = compute(state, cfg);
+  const u = cfg.finished.unit;
 
-  $("kits").classList.toggle("bad", !!state.kits.bad);
-  $("kitWarn").innerHTML = (state.kits.n > 20) ? '<div class="flag warn">That looks like boxes. Enter the number of kits (like 6).</div>' : "";
-  const noWeights = out.rows.some((x) => !(x.s.w.n > 0));
-  $("setupPill").hidden = !noWeights;
-  $("kitDesc").textContent = "One kit = " + PRODUCTS.map((p, i) => {
-    const k = state.rows[i].k; return (k.n !== undefined ? fmt1(k.n) : "?") + " " + p.name.toLowerCase();
-  }).join(", ") + " (boxes).";
+  if (cfg.useKits) {
+    $("kits").classList.toggle("bad", !!state.kits.bad);
+    $("kitWarn").innerHTML = (state.kits.n > 20) ? '<div class="flag warn">That looks like boxes. Enter the number of kits (like 6).</div>' : "";
+    $("kitDesc").textContent = "One kit = " + cfg.products.map((p, i) => {
+      const k = state.rows[i].k; return (k.n !== undefined ? fmt1(k.n) : "?") + " " + p.name.toLowerCase();
+    }).join(", ") + " (boxes).";
+  }
+
+  const f = { fp: parse($("fp").value), fs: parse($("fs").value), fe: parse($("fe").value),
+              pp: parse($("pp").value), bw: parse($("bw").value), fr: parse($("fr").value) };
+  const needsSetup = out.rows.some((x) => !(x.s.w.n > 0)) || !(f.pp.n > 0) || !(f.bw.n > 0);
+  $("setupPill").hidden = !needsSetup;
 
   out.rows.forEach((x) => {
     const id = x.p.id, s = x.s;
-    ["a", "p", "y", "l"].forEach((f) => $(id + "-" + f).classList.toggle("bad", !!s[f].bad));
-    ["w", "k"].forEach((f) => $(id + "-" + f).classList.toggle("bad", !!s[f].bad));
+    ["a", "p", "l", "w"].forEach((k) => $(id + "-" + k).classList.toggle("bad", !!s[k].bad));
+    if (cfg.useYamato) $(id + "-y").classList.toggle("bad", !!s.y.bad);
+    if ((cfg.pallets || 1) > 1) { $(id + "-p2").classList.toggle("bad", !!s.p2.bad); $(id + "-p3").classList.toggle("bad", !!s.p3.bad); }
+    if (cfg.useKits) $(id + "-k").classList.toggle("bad", !!s.k.bad);
     const res = $(id + "-res");
-    const anyBad = s.a.bad || s.p.bad || s.y.bad || s.l.bad || s.w.bad || s.k.bad || state.kits.bad;
-    const touched = ["a", "p", "y"].some((f) => !s[f].blank);
+    const anyBad = s.a.bad || s.p.bad || s.p2.bad || s.p3.bad || s.y.bad || s.l.bad || s.w.bad || s.k.bad || state.kits.bad;
+    const touched = [s.a, s.p, s.p2, s.p3, s.y, s.l].some((v) => v && !v.blank && v !== ZERO);
     if (anyBad) { res.innerHTML = '<div class="flag bad">Numbers only, no negatives, for example 12.5</div>'; return; }
     if (!x.ok) {
       res.innerHTML = touched ? '<div class="flag warn">Still needed: ' + x.missing.join(", ") + '</div>' : "";
       return;
     }
-    let h = '<div class="breakdown">Remaining: pallet <b>' + fmt1(s.p.n) + '</b> + kits <b>' + fmt1(x.kitBoxes) +
-            '</b> (' + fmt1(state.kits.n) + ' &times; ' + fmt1(s.k.n) + ') + Yamato <b>' + fmt1(s.y.n) + '</b> = <b>' +
-            fmt1(x.boxes) + '</b> boxes = ' + fmt(x.boxes * s.w.n) + ' lb' +
+    let parts;
+    if ((cfg.pallets || 1) > 1) {
+      const each = [s.p.n, s.p2.n || 0, s.p3.n || 0].filter((v, i) => i === 0 || v > 0);
+      parts = 'pallets <b>' + fmt1(x.palletBoxes) + '</b>' + (each.length > 1 ? ' (' + each.map(fmt1).join(' + ') + ')' : '');
+    } else {
+      parts = 'pallet <b>' + fmt1(s.p.n) + '</b>';
+    }
+    if (cfg.useKits) parts += ' + kits <b>' + fmt1(x.kitBoxes) + '</b> (' + fmt1(state.kits.n) + ' &times; ' + fmt1(s.k.n) + ')';
+    if (cfg.useYamato) parts += ' + Yamato <b>' + fmt1(s.y.n) + '</b>';
+    let h = '<div class="breakdown">Remaining: ' + parts + ' = <b>' + fmt1(x.boxes) + '</b> boxes = ' + fmt(x.boxes * s.w.n) + ' lb' +
             (x.looseLb > 0 ? ' + loose <b>' + fmt1(x.looseLb) + ' lb</b>' : '') + ' = <b>' + fmt(x.remLb) + ' lb</b></div>';
     h += '<div class="cons" style="margin-top:10px"><span class="lbl">Consumption (enter this)</span>' +
          '<span class="val">' + fmt(x.cons) + '<small>lb</small></span></div>';
@@ -331,23 +411,23 @@ function render() {
     res.innerHTML = h;
   });
 
-  const f = { fp: parse($("fp").value), fs: parse($("fs").value), fe: parse($("fe").value), pp: parse($("pp").value), bw: parse($("bw").value) };
-  ["fp", "fs", "fe", "pp", "bw"].forEach((k) => $(k).classList.toggle("bad", !!f[k].bad));
-  const fin = finishedCheck(f, out.total, out.allDone);
+  ["fp", "fs", "fe", "pp", "bw", "fr"].forEach((k) => $(k).classList.toggle("bad", !!f[k].bad));
+  const fin = finishedCheck(f, out.total, out.allDone, cfg);
   const finRes = $("finRes");
-  if (["fp", "fs", "fe", "pp", "bw"].some((k) => f[k].bad)) {
+  if (["fp", "fs", "fe", "pp", "bw", "fr"].some((k) => f[k].bad)) {
     finRes.innerHTML = '<div class="flag bad">Numbers only, no negatives, for example 20</div>';
   } else if (!fin.ok) {
     const touched = ["fp", "fs", "fe"].some((k) => !f[k].blank);
     finRes.innerHTML = touched ? '<div class="flag warn">Still needed: ' + fin.missing.join(", ") + ' (type 0 if none)</div>' : "";
   } else {
     let t = '<div class="fin-lines">Finished: ' + fmt1(f.fp.n) + ' &times; ' + fmt1(f.pp.n) + ' &minus; ' + fmt1(f.fs.n) + ' + ' + fmt1(f.fe.n) +
-            ' = <b>' + fmt1(fin.boxes) + '</b> boxes &times; ' + fmt1(f.bw.n) + ' lb = <b>' + fmt(fin.lb) + ' lb</b>';
+            ' = <b>' + fmt1(fin.units) + '</b> ' + pl(u) + ' &times; ' + fmt1(f.bw.n) + ' lb = <b>' + fmt(fin.lb) + ' lb</b>';
+    if (fin.rework > 0) t += '<br>Minus rework run: <b>' + fmt(fin.rework) + ' lb</b> = <b>' + fmt(fin.ingLb) + ' lb</b> made from ingredients';
     if (fin.waste !== null) {
       t += '<br>Consumed (total above): <b>' + fmt(out.total) + ' lb</b>' +
-           '<br>Consumed minus finished: <b>' + fmt(fin.waste) + ' lb</b> (expected about 30&ndash;50)';
+           '<br>Consumed minus finished: <b>' + fmt(fin.waste) + ' lb</b> (' + (cfg.waste.expect ? 'expected ' + cfg.waste.expect : 'OK range ' + fmt1(Math.round(fin.lo)) + ' to ' + fmt1(Math.round(fin.hi)) + ' lb') + ')';
     } else {
-      t += '<br>Waiting for all four product counts above to compare.';
+      t += '<br>Waiting for all product counts above to compare.';
     }
     t += '</div>';
     if (settled && fin.status) t += '<div class="flag ' + (fin.status === "ok" ? "ok" : "bad") + '">' + (fin.status === "ok" ? "OK" : "Check: " + fin.msg) + '</div>';
@@ -374,53 +454,85 @@ function render() {
   } else {
     $("totalLabel").textContent = "Total so far";
     $("total").innerHTML = out.doneCount ? fmt(out.total) + "<small>lb</small>" : "&ndash;";
-    note.textContent = (PRODUCTS.length - out.doneCount) + " of " + PRODUCTS.length + " products still need all counts.";
+    note.textContent = (cfg.products.length - out.doneCount) + " of " + cfg.products.length + " products still need all counts.";
   }
 }
 
 // ---- Remember entries in case Safari reloads the page ----------------------
 function save() {
   try {
-    const c = { kits: $("kits").value };
-    PRODUCTS.forEach((p) => { c[p.id] = [$(p.id + "-a").value, $(p.id + "-p").value, $(p.id + "-y").value, $(p.id + "-l").value]; });
-    c.fin = [$("fp").value, $("fs").value, $("fe").value];
-    localStorage.setItem(COUNTS_KEY, JSON.stringify(c));
-    const s = {};
-    PRODUCTS.forEach((p) => { s[p.id] = [$(p.id + "-w").value, $(p.id + "-k").value]; });
-    s.pallet = [$("pp").value, $("bw").value];
-    localStorage.setItem(SETUP_KEY, JSON.stringify(s));
+    const c = { kits: $("kits").value, fin: [$("fp").value, $("fs").value, $("fe").value, $("fr").value] };
+    const s = { pallet: [$("pp").value, $("bw").value] };
+    cfg.products.forEach((p) => {
+      c[p.id] = [$(p.id + "-a").value, $(p.id + "-p").value, cfg.useYamato ? $(p.id + "-y").value : "", $(p.id + "-l").value,
+                 (cfg.pallets || 1) > 1 ? $(p.id + "-p2").value : "", (cfg.pallets || 1) > 1 ? $(p.id + "-p3").value : ""];
+      s[p.id] = [$(p.id + "-w").value, cfg.useKits ? $(p.id + "-k").value : ""];
+    });
+    localStorage.setItem(countsKey(cfg.id), JSON.stringify(c));
+    localStorage.setItem(setupKey(cfg.id), JSON.stringify(s));
   } catch (e) { /* storage unavailable: fine */ }
 }
+function readJSON(key) { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (e) { return null; } }
 function load() {
-  try {
-    const c = JSON.parse(localStorage.getItem(COUNTS_KEY) || "null");
-    if (c) {
-      $("kits").value = c.kits || "";
-      if (c.fin) { $("fp").value = c.fin[0]; $("fs").value = c.fin[1]; $("fe").value = c.fin[2]; }
-      PRODUCTS.forEach((p) => { if (c[p.id]) { $(p.id + "-a").value = c[p.id][0]; $(p.id + "-p").value = c[p.id][1]; $(p.id + "-y").value = c[p.id][2]; $(p.id + "-l").value = c[p.id][3] || ""; } });
-    }
-    const s = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
-    if (s && s.pallet) { if (s.pallet[0] !== "") $("pp").value = s.pallet[0]; if (s.pallet[1] !== "") $("bw").value = s.pallet[1]; }
-    if (s) PRODUCTS.forEach((p) => { if (s[p.id]) { if (s[p.id][0] !== "") $(p.id + "-w").value = s[p.id][0]; if (s[p.id][1] !== "") $(p.id + "-k").value = s[p.id][1]; } });
-  } catch (e) { /* ignore */ }
+  const leg = LEGACY[cfg.id] || {};
+  const c = readJSON(countsKey(cfg.id)) || (leg.counts ? readJSON(leg.counts) : null);
+  const s = readJSON(setupKey(cfg.id)) || (leg.setup ? readJSON(leg.setup) : null);
+  if (c) {
+    if (cfg.useKits) $("kits").value = c.kits || "";
+    if (c.fin) { $("fp").value = c.fin[0] || ""; $("fs").value = c.fin[1] || ""; $("fe").value = c.fin[2] || ""; $("fr").value = c.fin[3] || ""; }
+    cfg.products.forEach((p) => {
+      const v = c[p.id]; if (!v) return;
+      $(p.id + "-a").value = v[0] || ""; $(p.id + "-p").value = v[1] || "";
+      if (cfg.useYamato) $(p.id + "-y").value = v[2] || "";
+      $(p.id + "-l").value = v[3] || "";
+      if ((cfg.pallets || 1) > 1) { $(p.id + "-p2").value = v[4] || ""; $(p.id + "-p3").value = v[5] || ""; }
+    });
+  }
+  if (s) {
+    if (s.pallet) { if (s.pallet[0] !== "") $("pp").value = s.pallet[0]; if (s.pallet[1] !== "") $("bw").value = s.pallet[1]; }
+    cfg.products.forEach((p) => {
+      const v = s[p.id]; if (!v) return;
+      if (v[0] !== "") $(p.id + "-w").value = v[0];
+      if (cfg.useKits && v[1] !== "") $(p.id + "-k").value = v[1];
+    });
+  }
+}
+function setupComplete() {
+  const f = { pp: parse($("pp").value), bw: parse($("bw").value) };
+  return cfg.products.every((p) => parse($(p.id + "-w").value).n > 0) && f.pp.n > 0 && f.bw.n > 0;
 }
 
-document.addEventListener("input", () => {
+function switchTo(id) {
+  cfg = CONFIGS.find((c) => c.id === id) || CONFIGS[0];
+  try { localStorage.setItem(SEL_KEY, cfg.id); } catch (e) {}
+  $("line").value = cfg.id;
+  buildUI(); load(); settled = true; render();
+  $("setup").open = !setupComplete();
+  window.scrollTo(0, 0);
+}
+
+$("line").innerHTML = CONFIGS.map((c) => '<option value="' + c.id + '">' + c.label + '</option>').join("");
+$("line").addEventListener("change", (e) => { save(); switchTo(e.target.value); });
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "line") return;
   settled = false; render(); save();
   clearTimeout(settleTimer);
   settleTimer = setTimeout(() => { settled = true; render(); }, 900);
 });
 $("clear").addEventListener("click", () => {
-  if (!confirm("Clear all counts? (Box weights and kit recipe are kept.)")) return;
-  $("kits").value = ""; $("fp").value = ""; $("fs").value = ""; $("fe").value = "";
-  PRODUCTS.forEach((p) => { $(p.id + "-a").value = ""; $(p.id + "-p").value = ""; $(p.id + "-y").value = ""; $(p.id + "-l").value = ""; });
+  if (!confirm("Clear all counts? (Box weights and pack sizes are kept.)")) return;
+  ["kits", "fp", "fs", "fe", "fr"].forEach((id) => { $(id).value = ""; });
+  cfg.products.forEach((p) => {
+    ["a", "p", "l"].concat(cfg.useYamato ? ["y"] : [], (cfg.pallets || 1) > 1 ? ["p2", "p3"] : []).forEach((k) => { $(p.id + "-" + k).value = ""; });
+  });
   settled = true; render(); save();
   window.scrollTo(0, 0);
 });
 
-load();
-render();
-if (!PRODUCTS.every((p) => parse($(p.id + "-w").value).n > 0)) $("setup").open = true;
+let startId = CONFIGS[0].id;
+try { startId = localStorage.getItem(SEL_KEY) || startId; } catch (e) {}
+switchTo(startId);
 
 // Offline support (needs https, which GitHub Pages provides). Relative path so it works under /REPONAME/.
 if ("serviceWorker" in navigator) {

@@ -1,6 +1,6 @@
 // Lets the page open with no signal after the first visit.
 // Change CACHE to a new name whenever you edit the files, so phones pick up the update.
-const CACHE = "trailmix-v5";
+const CACHE = "trailmix-v11";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
